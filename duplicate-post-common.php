@@ -39,7 +39,12 @@ function duplicate_post_admin_bar_render(){
         );
     }    
 }
+function duplicate_post_add_css(){
+    
+}
 function duplicate_post_init(){
     add_action('wp_before_admin_bar_render','duplicate_post_admin_bar_render');
+    add_action('wp_enqueue_scripts','duplicate_post_add_css');
+    add_action('admin_enqueue_scripts','duplicate_post_add_css');
 }
 add_action('init','duplicate_post_init');
