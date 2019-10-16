@@ -4,6 +4,7 @@ defined( 'ABSPATH' ) || exit;
 if(! is_admin()){
     return;
 }
+
 require_once(dirname(__FILE__).'/duplicate-post-options.php');
 //require_once(dirname(__FILE__).'/compat/duplicate-post-wpml.php');
 //require_once(dirname(__FILE__).'/compat/duplicate-post-jetpack.php');
@@ -13,15 +14,16 @@ function duplicate_post_get_installed_version(){
 }
 
 function duplicate_post_get_current_version(){
-    return AZAD_DUPLICATE_POST_VERSION;
+    return adp_version;
 }
 
 add_action('admin_init','duplicate_post_admin_init');
 function duplicate_post_admin_init(){
-    duplicate_post_plugin_upgrade();
-    if(get_option('duplicate_post_show_row') == 1){
-
-    }
+    //duplicate_post_plugin_upgrade();
+    //if(get_option('duplicate_post_show_row') == 1){
+        add_filter('post_row_actions','duplicate_post_make_duplicate_link_row',10,2);
+        //add_filter('page_row_actions','duplicate_post_make_duplicate_link_row',10,2);
+    //}
     if(get_site_option('duplicate_post_show_notice') == 1){
         if(true){
             echo 'asdf';
@@ -30,9 +32,59 @@ function duplicate_post_admin_init(){
     if(get_option('duplicate_post_show_submitbox') == 1){
 
     }
-    add_action( 'admin_notices', 'duplicate_post_show_update_notice' );
-    add_filter('plugin_row_meta','duplicate_post_add_plugin_links',10,2);
-    add_action('admin_notices','duplicate_post_action_admin_notice');
+    add_action('admin_action_duplicate_post_save_as_new_post','duplicate_post_save_as_new_post');
+    // add_action( 'admin_notices', 'duplicate_post_show_update_notice' );
+    // add_filter('plugin_row_meta','duplicate_post_add_plugin_links',10,2);
+    // add_action('admin_notices','duplicate_post_action_admin_notice');
+}
+
+function duplicate_post_save_as_new_post_draft(){
+    duplicate_post_save_as_new_post('draft');
+}
+function duplicate_post_save_as_new_post(){
+    
+}
+function duplicate_post_plugin_upgrade(){
+    $installed_version = duplicate_post_get_installed_version();
+
+    if($installed_version = duplicate_post_get_current_version()){
+        return;
+    }
+
+    if( empty($installed_version)){
+        $default_roles = array(
+            3 => 'editor',
+            8 => 'administrator'
+        );
+        foreach($default_roles as $level => $name){
+
+        }
+    }else{
+
+    }
+
+    add_option('duplicate_post_copytitle','1');
+    add_option('duplicate_post_copydate','0');
+    add_option('duplicate_post_copystatus','0');
+    add_option('duplicate_post_copyslug','0');
+    add_option('duplicate_post_copyexcerpt','1');
+    add_option('duplicate_post_copycontent','1');
+    add_option('duplicate_post_copythumbnail','1');
+    add_option('duplicate_post_copytemplate','1');
+    add_option('duplicate_post_copyformat','1');
+    add_option('duplicate_post_copyauthor','0');
+    add_option('duplicate_post_copypassword','0');
+    add_option('duplicate_post_copyattachments','0');
+    add_option('duplicate_post_copychildren','0');
+    add_option('duplicate_post_copycomments','0');
+    add_option('duplicate_post_copymenuorder','1');
+    add_option('duplicate_post_taxonomies_blacklist',array());
+    add_option('duplicate_post_blacklist','');
+    add_option('duplicate_post_types_enabled',array('post','page'));
+    add_option('duplicate_post_show_row','1');
+    add_option('duplicate_post_show_adminbar','1');
+    add_option('duplicate_post_show_submitbox','1');
+    add_option('duplicate_post_show_bulkactions','1');
 }
 function duplicate_post_show_update_notice(){
     if(! current_user_can('manage_options')){
@@ -67,9 +119,7 @@ function duplicate_post_show_update_notice(){
 function duplicate_post_dismiss_notice(){
 
 }
-function duplicate_post_plugin_upgrade(){
 
-}
 function duplicate_post_add_plugin_links($links,$file){
     if($file == plugin_basename(dirname(__FILE__)) . '/azad-duplicate-post.php'){
         $links[] = '<a href="http://www.gittechs.com">' . esc_html('Documentation','azad-duplicate-post') . '</a>';
@@ -80,4 +130,11 @@ function duplicate_post_add_plugin_links($links,$file){
 
 function duplicate_post_action_admin_notice(){
     remove_query_arg('cloned');
+}
+
+function duplicate_post_make_duplicate_link_row($actions,$post){
+    if(true){
+        $actions['clone'] = '<a href="'. duplicate_post_get_clone_post_link($post->ID,'display',false) .'" title="'. esc_attr__('Clone this item','azad-duplicate-post') .'">'. esc_html__('Clone','azad-duplicate-post') .'</a>';
+    }
+    return $actions;
 }
