@@ -19,7 +19,7 @@ function duplicate_post_get_current_version(){
 
 add_action('admin_init','duplicate_post_admin_init');
 function duplicate_post_admin_init(){
-    //duplicate_post_plugin_upgrade();
+    duplicate_post_plugin_upgrade();
     //if(get_option('duplicate_post_show_row') == 1){
         add_filter('post_row_actions','duplicate_post_make_duplicate_link_row',10,2);
         add_filter('page_row_actions','duplicate_post_make_duplicate_link_row',10,2);
@@ -33,26 +33,22 @@ function duplicate_post_admin_init(){
 
     // }
     add_action('admin_action_duplicate_post_save_as_new_post','duplicate_post_save_as_new_post');
-    //add_action('admin_action_duplicate_post_save_as_new_post_draft','duplicate_post_save_as_new_post_draft');
+    add_action('admin_action_duplicate_post_save_as_new_post_draft','duplicate_post_save_as_new_post_draft');
     add_action( 'admin_notices', 'duplicate_post_show_update_notice' );
     // add_filter('plugin_row_meta','duplicate_post_add_plugin_links',10,2);
     add_action('admin_notices','duplicate_post_action_admin_notice');
 }
 
-// function duplicate_post_save_as_new_post_draft(){
-//     duplicate_post_save_as_new_post('draft');
-// }
-
-// function duplicate_post_make_duplicate_link_row($actions,$post){
-//     //if(true){
-//         $actions['clone'] = '<a href="'. duplicate_post_get_clone_post_link($post->ID,'display',false) .'" title="'. esc_attr__('Clone this item','azad-duplicate-post') .'">'. esc_html__('Clone','azad-duplicate-post') .'</a>';
-//     //}
-//     return $actions;
-// }
+function duplicate_post_save_as_new_post_draft(){
+    duplicate_post_save_as_new_post('draft');
+}
 function duplicate_post_make_duplicate_link_row($actions, $post) {
 	$actions['clone'] = '<a href="'.duplicate_post_get_clone_post_link( $post->ID , 'display', false).'" title="'
 				. esc_attr__("Clone this item", 'duplicate-post')
-				. '">' .  esc_html__('Clone', 'duplicate-post') . '</a>';
+                . '">' .  esc_html__('Clone', 'duplicate-post') . '</a>';
+    $actions['edit_as_new_draft'] = '<a href="'.duplicate_post_get_clone_post_link( $post->ID).'" title="'
+				. esc_attr__("Copy to a new draft", 'duplicate-post')
+				. '">' .  esc_html__('New draft', 'duplicate-post') . '</a>';
 	return $actions;
 }
 function duplicate_post_save_as_new_post($status=''){
@@ -70,18 +66,18 @@ function duplicate_post_save_as_new_post($status=''){
         $new_id = duplicate_post_create_duplicate($post,$status);
         if($status == ''){
             $sendback = wp_get_referer();
-    //         if(!$sendback || 
-    //             strpos($sendback, 'post.php') !== false || 
-    //             strpos($sendback, 'post-new.php') !== false){
-    //             if('attachment' == $post_type){
+            if(!$sendback || 
+                strpos($sendback, 'post.php') !== false || 
+                strpos($sendback, 'post-new.php') !== false){
+                if('attachment' == $post_type){
     //                 $sendback = admin_url('upload.php');
-    //             }else{
+                }else{
     //                 $sendback = admin_url('edit.php');
     //                 if(! empty($post_type)){
     //                     $sendback = add_query_arg('post_type',$post_type,$sendback);
     //                 }
-    //             }
-    //         }
+                }
+            }
             wp_redirect(add_query_arg(array('clonedf'=> 1, 'ids'=> $post->ID), $sendback));
         }else{
             wp_redirect(add_query_arg(array('cloned'=> 1, 'ids'=> $post->ID), admin_url('post.php?action=edit&post='.$new_id)));
@@ -174,21 +170,37 @@ function duplicate_post_create_duplicate($post,$status = '',$parent_id = ''){
 }
 function duplicate_post_plugin_upgrade(){
     $installed_version = duplicate_post_get_installed_version();
-
     if($installed_version = duplicate_post_get_current_version()){
         return;
     }
-
     if( empty($installed_version)){
         $default_roles = array(
             3 => 'editor',
             8 => 'administrator'
         );
         foreach($default_roles as $level => $name){
-
+            $role = get_role($name);
+            if(!empty($role)){
+                $role->add_cap('copy_posts');
+            }
         }
     }else{
-
+        $min_user_level = get_option('duplicate_post_copy_user_level');
+        if(! empty($min_user_level)){
+            $default_roles = array(
+                1 => 'contributor',
+                2 => 'author',
+                3 => 'editor',
+                8 => 'administrator'
+            );
+            foreach($default_roles as $level => $name){
+                $role = get_role($name);
+                if($role && $min_user_level <= $level){
+                    $role->add_cap('copy_posts');
+                }
+            }
+            delete_option('duplicate_post_copy_user_level');
+        }
     }
 
     add_option('duplicate_post_copytitle','1');

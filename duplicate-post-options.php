@@ -56,6 +56,7 @@ function duplicate_post_options(){ ?>
                 jQuery(this).addClass('nav-tab-active');
                 jQuery('section').hide();
                 jQuery('section').eq(jQuery(this).index()).show();
+                return false;
             });
         </script>
         <style>
@@ -243,7 +244,7 @@ function duplicate_post_options(){ ?>
                 <table class="form-table">
                     <tr valign="top">
                         <th scope="row">
-                            <?php esc_html_e('Show links in','azad-duplicate-post'); ?>
+                            <?php esc_html_e('Roles allowed to copy','azad-duplicate-post'); ?>
                         </th>
                         <td>
                             <label>
@@ -261,24 +262,22 @@ function duplicate_post_options(){ ?>
                             <label>
                                 <input type="checkbox" name="duplicate_post_show_row" value="1" />
                             </label>
+                            <span class="description"><?php esc_html_e("Warning: users will be able to copy all posts, even those of other users", 'duplicate-post'); ?><br />
+                                <?php esc_html_e("Passwords and contents of password-protected posts may become visible to undesired users and visitors", 'duplicate-post'); ?>
+                            </span>
                         </td>
                     </tr>
                     <tr valign="top">
                         <th scope="row">
-                            <?php esc_html_e('Show update notice','azad-duplicate-post'); ?>
+                            <?php esc_html_e('Enable for these post types','azad-duplicate-post'); ?>
                         </th>
                         <td>
                             <input type="checkbox" name="duplicate_post_show_notice" />
+                            <span class="description"><?php esc_html_e("Select the post types you want the plugin to be enabled", 'duplicate-post'); ?>
+							<br /> <?php esc_html_e("Whether the links are displayed for custom post types registered by themes or plugins depends on their use of standard WordPress UI elements", 'duplicate-post'); ?>
+                            </span>
                         </td>
-                    </tr>
-                    <tr valign="top">
-                        <th scope="row">
-                            <?php esc_html_e('Show update notice','azad-duplicate-post'); ?>
-                        </th>
-                        <td>
-                            <input type="checkbox" name="duplicate_post_show_notice" />
-                        </td>
-                    </tr>
+                    </tr>                    
                 </table>
             </section>
             <section>
@@ -289,28 +288,29 @@ function duplicate_post_options(){ ?>
                         </th>
                         <td>
                             <label>
-                                <input type="checkbox" name="duplicate_post_show_row" value="1" />
+                                <input type="checkbox" name="duplicate_post_show_row" value="1" <?php if(get_option('duplicate_post_show_row') == 1){echo 'checked="checked"';}?>/>
                                 <?php esc_html_e('Post list','azad-duplicate-post'); ?>
                             </label>
                             <label>
-                                <input type="checkbox" name="duplicate_post_show_row" value="1" />
+                                <input type="checkbox" name="duplicate_post_show_submitbox" value="1" <?php if(get_option('duplicate_post_show_submitbox') == 1){echo 'checked="checked"';}?>/>
                                 <?php esc_html_e('Edit screen','azad-duplicate-post'); ?>
                             </label>
                             <label>
-                                <input type="checkbox" name="duplicate_post_show_row" value="1" />
-                                <?php esc_html_e('Bulk actions','azad-duplicate-post'); ?>
+                                <input type="checkbox" name="duplicate_post_show_adminbar" value="1" <?php if(get_option('duplicate_post_show_adminbar') == 1){echo 'checked="checked"';}?>/>
+                                <?php esc_html_e('Admin bar','azad-duplicate-post'); ?>
+                                <small>(<?php esc_html_e("now works on Edit screen too - check this option to use with Gutenberg enabled", 'duplicate-post');  ?>)</small>
                             </label>
                             <label>
-                                <input type="checkbox" name="duplicate_post_show_row" value="1" />
+                                <input type="checkbox" name="duplicate_post_show_bulkactions" value="1" <?php if(get_option('duplicate_post_show_bulkactions') == 1){echo 'checked="checked"';}?>/>
+                                <?php esc_html_e('Bulk actions','azad-duplicate-post'); ?>
                             </label>
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row">
-                            <?php esc_html_e('Show update notice','azad-duplicate-post'); ?>
-                        </th>
-                        <td>
-                            <input type="checkbox" name="duplicate_post_show_notice" />
+                        <td colspan="2">
+                            <span class="description">
+                                <?php esc_html_e("Whether the links are displayed for custom post types registered by themes or plugins depends on their use of standard WordPress UI elements", 'duplicate-post'); ?><br/><?php printf(__('You can also use the template tag duplicate_post_clone_post_link( $link, $before, $after, $id ). More info <a href="%s">here</a>', 'duplicate-post'), 'https://duplicate-post.lopo.it/docs/developers-guide/functions-template-tags/duplicate_post_clone_post_link/'); ?>
+                            </span>
                         </td>
                     </tr>
                     <tr valign="top">
@@ -318,7 +318,7 @@ function duplicate_post_options(){ ?>
                             <?php esc_html_e('Show update notice','azad-duplicate-post'); ?>
                         </th>
                         <td>
-                            <input type="checkbox" name="duplicate_post_show_notice" />
+                            <input type="checkbox" name="duplicate_post_show_notice" value="1" <?php if(get_option('duplicate_post_show_notice') == 1){echo 'checked="checked"';}?>/>
                         </td>
                     </tr>
                 </table>
