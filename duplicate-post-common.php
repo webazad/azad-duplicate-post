@@ -1,18 +1,32 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
-function azad_duplicate_post_is_current_user_allowed_to_copy(){
+function duplicate_post_is_current_user_allowed_to_copy(){
     return current_user_can('copy_posts');
 }
 
-function azad_duplicate_post_is_post_type_enabled(){
-    $post_types_enabled = get_option('asdf',array());
+function azad_duplicate_post_is_post_type_enabled($post_type){
+    $duplicate_post_types_enabled = get_option('duplicate_post_types_enabled',array('post','page'));
+    if(! is_array($duplicate_post_types_enabled)){
+        $duplicate_post_types_enabled = array($duplicate_post_types_enabled);
+    }
+    return in_array($post_type, $duplicate_post_types_enabled);
 }
 
 function azad_duplicate_post_get_copy_user_level(){
     return get_option('duplicate_post_copy_user_level');
 }
 function duplicate_post_get_clone_post_link( $id = 0, $context = 'display', $draft = true){
+//     // if(! duplicate_post_is_current_user_allowed_to_copy()){
+//     //     return;
+//     // }
+    $post = get_post($id);
+//     // if(!$post = get_post($id)){
+//     //     return;
+//     // }
+//     // if(!duplicate_post_is_post_type_enabled($post->post_type)){
+//     //     return;
+//     // }
     if($draft){
         $action_name = 'duplicate_post_save_as_new_post_draft';
     }else{
@@ -23,11 +37,13 @@ function duplicate_post_get_clone_post_link( $id = 0, $context = 'display', $dra
     }else{
         $action = '?action='.$action_name.'&post='.$post->ID;
     }
-    $post_type_object = get_post_type_object($post->post_type);
-    if(!$post_type_object){
-        return;
-    }
-    wp_nonce_url(apply_filters('duplicate_post_get_clone_post_link',admin_url('admin.php',$action),$post->ID,$context),'duplicate-post_' . $post->ID);
+//     $post = get_post($id);
+	
+//     // $post_type_object = get_post_type_object($post->post_type);
+//     // if(!$post_type_object){
+//     //     return;
+//     // }
+    return wp_nonce_url(apply_filters('duplicate_post_get_clone_post_link',admin_url('admin.php'.$action),$post->ID,$context),'adp_' . $post->ID);
 }
 
 function azad_duplicate_post_clone_post_link($id=0,$context='display',$draft=true){

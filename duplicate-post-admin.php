@@ -22,27 +22,155 @@ function duplicate_post_admin_init(){
     //duplicate_post_plugin_upgrade();
     //if(get_option('duplicate_post_show_row') == 1){
         add_filter('post_row_actions','duplicate_post_make_duplicate_link_row',10,2);
-        //add_filter('page_row_actions','duplicate_post_make_duplicate_link_row',10,2);
+        add_filter('page_row_actions','duplicate_post_make_duplicate_link_row',10,2);
     //}
-    if(get_site_option('duplicate_post_show_notice') == 1){
-        if(true){
-            echo 'asdf';
-        }
-    }
-    if(get_option('duplicate_post_show_submitbox') == 1){
+    // if(get_site_option('duplicate_post_show_notice') == 1){
+    //     if(true){
+    //         echo 'asdf';
+    //     }
+    // }
+    // if(get_option('duplicate_post_show_submitbox') == 1){
 
-    }
+    // }
     add_action('admin_action_duplicate_post_save_as_new_post','duplicate_post_save_as_new_post');
-    // add_action( 'admin_notices', 'duplicate_post_show_update_notice' );
+    //add_action('admin_action_duplicate_post_save_as_new_post_draft','duplicate_post_save_as_new_post_draft');
+    add_action( 'admin_notices', 'duplicate_post_show_update_notice' );
     // add_filter('plugin_row_meta','duplicate_post_add_plugin_links',10,2);
-    // add_action('admin_notices','duplicate_post_action_admin_notice');
+    add_action('admin_notices','duplicate_post_action_admin_notice');
 }
 
-function duplicate_post_save_as_new_post_draft(){
-    duplicate_post_save_as_new_post('draft');
+// function duplicate_post_save_as_new_post_draft(){
+//     duplicate_post_save_as_new_post('draft');
+// }
+
+// function duplicate_post_make_duplicate_link_row($actions,$post){
+//     //if(true){
+//         $actions['clone'] = '<a href="'. duplicate_post_get_clone_post_link($post->ID,'display',false) .'" title="'. esc_attr__('Clone this item','azad-duplicate-post') .'">'. esc_html__('Clone','azad-duplicate-post') .'</a>';
+//     //}
+//     return $actions;
+// }
+function duplicate_post_make_duplicate_link_row($actions, $post) {
+	$actions['clone'] = '<a href="'.duplicate_post_get_clone_post_link( $post->ID , 'display', false).'" title="'
+				. esc_attr__("Clone this item", 'duplicate-post')
+				. '">' .  esc_html__('Clone', 'duplicate-post') . '</a>';
+	return $actions;
 }
-function duplicate_post_save_as_new_post(){
-    
+function duplicate_post_save_as_new_post($status=''){
+    $id = (isset($_GET['post'])) ? $_GET['post'] : $_POST['post'];
+    check_admin_referer('adp_'.$id);
+    // if(! duplicate_post_is_current_user_allowed_to_copy()){
+    //     wp_die(esc_html__('Current user is not allowed to copy this post.','azad-duplicate-post'));
+    // }
+    if(!(isset($_GET['post']) || isset($_POST['post']) || (isset($_REQUEST['action']) && 'duplicate_post_save_as_new_post' == $_REQUEST['action']))){
+        wp_die(esc_html__('No post to duplicate has been supplied!','azad-duplicate-post'));
+    }
+    $post = get_post($id);
+    if(isset($post) && $post != null){
+        $post_type = $post->post_type;
+        $new_id = duplicate_post_create_duplicate($post,$status);
+        if($status == ''){
+            $sendback = wp_get_referer();
+    //         if(!$sendback || 
+    //             strpos($sendback, 'post.php') !== false || 
+    //             strpos($sendback, 'post-new.php') !== false){
+    //             if('attachment' == $post_type){
+    //                 $sendback = admin_url('upload.php');
+    //             }else{
+    //                 $sendback = admin_url('edit.php');
+    //                 if(! empty($post_type)){
+    //                     $sendback = add_query_arg('post_type',$post_type,$sendback);
+    //                 }
+    //             }
+    //         }
+            wp_redirect(add_query_arg(array('clonedf'=> 1, 'ids'=> $post->ID), $sendback));
+        }else{
+            wp_redirect(add_query_arg(array('cloned'=> 1, 'ids'=> $post->ID), admin_url('post.php?action=edit&post='.$new_id)));
+        }
+        exit;
+    }else{
+        wp_die(esc_html__('Copy creation failed, could not find original: ','azad-duplicate-post') . htmlspecialchars($id));
+    }
+}
+function duplicate_post_create_duplicate($post,$status = '',$parent_id = ''){
+    do_action('duplicate_post_pre_copy');
+    // if(! duplicate_post_is_post_type_enabled($post->post_type) && $post->post_type != 'attachment'){
+    //     wp_die(esc_html__('Copy features for this post type are not enabled in options page.','azad-duplicate-post'));
+    //     $new_post_status = (empty($status)) ? $post->post_status : $status;
+    // }
+    // if($post->post_status != 'attachment'){
+    //     $prefix = sanitize_text_field(get_option('duplicate_post_title_prefix'));
+    //     $suffix = sanitize_text_field(get_option('duplicate_post_title_suffix'));
+    //     $title = '';
+    //     if(get_option('duplicate_post_copytitle') == 1){
+            $title = $post->post_title;
+    //         if(!empty($prefix)) $prefix." ";
+    //         if(!empty($suffix)) " " . $suffix;
+    //     }else{
+    //         $title = '';
+    //     }
+    //     $title = trim($prefix . $title . $suffix);
+    //     if($title == ""){
+    //         $title = __('Untitled');
+    //     }
+    //     if(get_option('duplicate_post_copystatus') == 0){
+    //         $new_post_status = 'draft';
+    //     }else{
+    //         if('publish' == $new_post_status || 'feature' == $new_post_status){
+    //             if(is_post_type_hierarchical($post->post_type)){
+    //                 if(!current_user_can('publish_pages')){
+    //                     $new_post_status = 'pending';
+    //                 }
+    //             }else{
+    //                 if(!current_user_can('publish_posts')){
+    //                     $new_post_status = 'pending';
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+    $new_post_author = wp_get_current_user();
+    $new_post_author_id = $new_post_author->ID;
+    // if(get_option('duplicate_post_copy_author') == '1'){
+    //     if(is_post_type_hierarchical($post->post_type)){
+    //         if(!current_user_can('edit_others_pages')){
+    //             $new_post_author_id = $post->post_author;
+    //         }
+    //     }else{
+    //         if(!current_user_can('edit_others_posts')){
+    //             $new_post_author_id = $post->post_author;
+    //         }
+    //     }
+    // }
+    // $menu_order = (get_option('duplicate_post_copymenuorder') == '1') ? $post->menu_rder : 0;
+    // $increase_menu_order_by = get_option('duplicate_post_increase_menu_order_by');
+    // if(!empty($increase_menu_order_by) && is_numeric($increase_menu_order_by)){
+    //     $menu_order += intval($increase_menu_order_by);
+    // }
+    $post_name = $post->post_name;
+    if(get_option('duplicate_post_copyslug') != 1){
+        $post_name = '';
+    }
+    $new_post = array(
+        // 'menu_order' => $menu_order,
+        'comment_status' => $post->comment_status,
+        'ping_status' => $post->ping_status,
+        'post_author' => $new_post_author_id,
+        'post_content' => (get_option('duplicate_post_copycontent') == '1') ? $post->post_content : '',
+        'post_content_filtered' => (get_option('duplicate_post_copycontent') == '1') ? $post->post_content_filtered : '',
+        'post_excerpt' => (get_option('duplicate_post_copyexcerpt') == '1') ? $post->post_excerpt : '',
+        'post_mime_type' => $post->post_mime_type,
+        // 'post_parent' => $new_post_parent = empty($parent_id) ? $post->post_parent : $parent_id,
+        'post_password' => (get_option('duplicate_post_copyepassword') == '1') ? $post->post_password : '',
+        // 'post_status' => $new_post_status,
+        'post_title' => $title,
+        'post_type'=> $post->post_type,
+        'post_name' => $post_name
+    );
+    do_action('duplicate_Post_post_copy');
+    $new_post['post_date'] = $new_post_date = $post->post_date;
+    $new_post['post_date_gmt'] = get_gmt_from_date($new_post_date);
+    $new_post_id = wp_insert_post(wp_slash($new_post));
+    return $new_post_id;
 }
 function duplicate_post_plugin_upgrade(){
     $installed_version = duplicate_post_get_installed_version();
@@ -129,12 +257,13 @@ function duplicate_post_add_plugin_links($links,$file){
 }
 
 function duplicate_post_action_admin_notice(){
-    remove_query_arg('cloned');
+    if(!empty($_REQUEST['clonedf'])){
+        $copied_posts = intval($_REQUEST['clonedf']);
+        printf('<div id="message" class="updated fade"><p>' . 
+        _n('%s item copied.','%s item copied.',$copied_posts,'adp')
+         . '</p></div>',$copied_posts);
+         remove_query_arg('clonedf');
+    }    
 }
 
-function duplicate_post_make_duplicate_link_row($actions,$post){
-    if(true){
-        $actions['clone'] = '<a href="'. duplicate_post_get_clone_post_link($post->ID,'display',false) .'" title="'. esc_attr__('Clone this item','azad-duplicate-post') .'">'. esc_html__('Clone','azad-duplicate-post') .'</a>';
-    }
-    return $actions;
-}
+

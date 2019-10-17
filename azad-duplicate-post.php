@@ -27,22 +27,22 @@ define( 'adp_plugin', plugin_basename( __FILE__ ) );
 define( 'adp_version', $plugin_data['Version'] );
 define( 'adp_name', $plugin_data['Name'] );
 
-// function activate_azad(){
-//     Activate::activate();	
-// }
-// register_activation_hook(__FILE__,'activate_azad');
+function activate_azad(){
+    Activate::activate();	
+}
+register_activation_hook(__FILE__,'activate_azad');
 
-// function deactivate_azad(){
-//     Deactivate::deactivate();
-// }
-// register_deactivation_hook(__FILE__,'deactivate_azad');
+function deactivate_azad(){
+    Deactivate::deactivate();
+}
+register_deactivation_hook(__FILE__,'deactivate_azad');
 
-// if(file_exists(dirname(__FILE__) . '/vendor/autoload.php')){
-//     require_once dirname(__FILE__) . '/vendor/autoload.php';
-// }
-// if ( class_exists( 'Inc\\Init' ) ) :    
-//     Inc\Init::register_services();
-// endif;
+if(file_exists(dirname(__FILE__) . '/vendor/autoload.php')){
+    require_once dirname(__FILE__) . '/vendor/autoload.php';
+}
+if ( class_exists( 'Inc\\Init' ) ) :    
+    Inc\Init::register_services();
+endif;
 
 /**
  * Initialise the internationalisation domain
