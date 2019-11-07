@@ -35,7 +35,7 @@ register_activation_hook(__FILE__,'activate_azad');
 function deactivate_azad(){
     Deactivate::deactivate();
 }
-register_deactivation_hook(__FILE__,'deactivate_azad');
+//register_deactivation_hook(__FILE__,'deactivate_azad');
 
 if(file_exists(dirname(__FILE__) . '/vendor/autoload.php')){
     require_once dirname(__FILE__) . '/vendor/autoload.php';
